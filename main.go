@@ -28,6 +28,8 @@ func main() {
 	db.AutoMigrate(&Movie{})
 
 	router := gin.Default()
+	router.GET("/", home)
+	router.GET("/health", health)
 	router.GET("/movies", getMovies)
 	router.GET("/movies/:id", getMovieByID)
 	router.POST("/movies", createMovie)

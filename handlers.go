@@ -59,3 +59,33 @@ func createMovie(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusCreated, movie)
 }
+
+// home handles GET /
+func home(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"message": "Movies API",
+		"endpoints": []string{
+			"GET  /health",
+			"GET  /movies",
+			"GET  /movies/:id",
+			"POST /movies",
+		},
+	})
+}
+
+// It pings Postgres, so "ok" means both the server and the database are up.
+func health(c *gin.Context) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "error", "database": err.Error()})
+		return
+	}
+
+	err = sqlDB.Ping()
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "error", "database": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "database": "connected"})
+}
