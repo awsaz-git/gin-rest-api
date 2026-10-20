@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,6 +53,12 @@ func createMovie(c *gin.Context) {
 		return
 	}
 
+	err = validateMovie(movie)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	err = db.Create(&movie).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -58,6 +66,24 @@ func createMovie(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, movie)
+}
+
+// validateMovie checks a movie's fields before it is saved.
+func validateMovie(m Movie) error {
+	if strings.TrimSpace(m.Title) == "" {
+		return errors.New("title is required")
+	}
+
+	if m.Rating != nil && (*m.Rating < 0 || *m.Rating > 10) {
+		return errors.New("rating must be between 0 and 10")
+	}
+
+	// 1888 is the year of the first known film.
+	if m.ReleaseYear != nil && *m.ReleaseYear < 1888 {
+		return errors.New("release_year must be 1888 or later")
+	}
+
+	return nil
 }
 
 // home handles GET /
